@@ -243,28 +243,31 @@ def CalcRectangle1(a, b, theta, phi_arr, ka):
 	wavelength = 2*np.pi/k
 	RCSmaxval = 4*np.pi*S*S/(wavelength*wavelength)
 	RCSarr = ObtainBSP(F, V, k, theta, phi_arr, "h")
-#		curve = ShortwaveApproximation(a, b, k, theta_arr, phi)
+	curve = RCSmaxval*0.0002*(sinc(coef*phi_arr * np.pi / 180)**2)
+	curve1 = RCSmaxval*0.0002*(sinc(coef*2*phi_arr * np.pi / 180)**2)
 #		curve1 = LongwaveApproximation(a, b, k, theta_arr, phi)
-#		print("step {0} from {1}".format(iwave+1, Nw))
+	print("max RCS {0}, max aprox {1}".format(np.max(RCSarr), np.max(curve)))
 #		print("shortwave discrepancy is {0}".format(discrepancy[iwave]))
 #		print("longwave discrepancy is {0}".format(discrepancy1[iwave]))
 #		print("ka = {0}".format(ka))
 #		print("--------------------------------------")
 #	if Nw == 1:
 	plt.plot(phi_arr, RCSarr, 'r', label = "RCS")
+	plt.plot(phi_arr, curve, 'g', label = "aprox")
+	plt.plot(phi_arr, curve1, 'b', label = "aprox")
 #		plt.plot(theta_arr, curve, 'g', label = "shortwave discrepancy")
 #		plt.plot(theta_arr, curve1, 'b', label = "longwave discrepancy")
 #	else:
 #		plt.loglog(ka_arr, discrepancy, 'g', label = "shortwave discrepancy")
 #		plt.loglog(ka_arr, discrepancy1, 'b', label = "longwave discrepancy")
-	plt.legend(loc="lower center")
+	plt.legend(loc="upper left")
 	plt.show()
 
 a = 2
 b = 2
-Na = 361
+Na = 181
 theta_arr = np.linspace(45, 90, 1)
-phi_arr = np.linspace(0, 360, Na)
+phi_arr = np.linspace(-90, 90, Na)
 ka = 50
 CalcRectangle1(a, b, theta_arr, phi_arr, ka)
 #Na = 181
