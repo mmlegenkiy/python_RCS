@@ -1,6 +1,7 @@
 import numpy as np
 import array
 import matplotlib.pyplot as plt
+from cmath import phase
 
 def foreshortening(phi_deg, theta_deg, pol):
 	''' Define foreshortening '''
@@ -36,8 +37,8 @@ def generateTriangle():
 	V3 = np.array([0, 1, 0], dtype=np.float);
 	return V1, V2, V3
 
-def generateRectangle(a,b):
-	V = np.array([[-a/2, -b/2, 0], [a/2, -b/2, 0], [a/2, b/2, 0], [-a/2, b/2, 0]], dtype=float)
+def generateRectangle(a,b,c = [0, 0]):
+	V = np.array([[c[0]-a/2, c[1]-b/2, 0], [c[0]+a/2, c[1]-b/2, 0], [c[0]+a/2, c[1]+b/2, 0], [c[0]-a/2, c[1]+b/2, 0]], dtype=float)
 	F = np.array([[0, 1, 3], [1, 2, 3]])
 	return F, V
 
@@ -133,6 +134,14 @@ def CalcMonostaticRCS(F, V, k, theta, phi, pol):
 	for ifacet in range(Nfacet):
 		Es += FaceField(V[F[ifacet,0]], V[F[ifacet,1]], V[F[ifacet,2]], k, ri, ei, rs, u)
 	return 4*np.pi*np.abs(np.dot(Es,ei))**2
+
+def CalcMonostaticReflectedField(F, V, k, ei, ri, rs):
+	Es = 0
+	u = 1
+	Nfacet = F.shape[0]
+	for ifacet in range(Nfacet):
+		Es += FaceField(V[F[ifacet,0]], V[F[ifacet,1]], V[F[ifacet,2]], k, ri, ei, rs, u)
+	return Es
 
 def ObtainBSP(F, V, k, theta_arr, phi_arr, pol):
 	Nphi = phi_arr.size
@@ -263,13 +272,51 @@ def CalcRectangle1(a, b, theta, phi_arr, ka):
 	plt.legend(loc="upper left")
 	plt.show()
 
-a = 2
-b = 2
-Na = 181
-theta_arr = np.linspace(45, 90, 1)
-phi_arr = np.linspace(-90, 90, Na)
-ka = 50
-CalcRectangle1(a, b, theta_arr, phi_arr, ka)
+
+def CalcTwoRectangles(a, b, theta_arr, phi, ka):
+	F1, V1 = generateRectangle(a, b, [-a / 2, 0])
+	F2, V2 = generateRectangle(a, b, [ a / 2, 0])
+	S1, S2 = a * b, a * b
+	k = ka / a
+	wavelength = 2 * np.pi / k
+	Na = len(theta_arr)
+	Diff_abs = np.zeros((Na,))
+	Diff_phase = np.zeros((Na,))
+	for i in range(Na):
+		ri, ei = foreshortening(phi, theta_arr[i], "h")
+		rs = -ri
+		Es1 = CalcMonostaticReflectedField(F1, V1, k, ei, ri, rs)
+		Es2 = CalcMonostaticReflectedField(F2, V2, k, ei, ri, rs)
+		Diff_abs[i] = abs(Es1[1]) - abs(Es2[1])
+		Diff_phase[i] = phase(Es1[1]) - phase(Es2[1])
+	plt.plot(theta_arr, Diff_abs, 'r', label="abs")
+	plt.plot(theta_arr, Diff_phase, 'b', label="phase")
+	plt.legend(loc="upper left")
+	plt.show()
+	# print('=============X=============')
+	# print(f"delta abs = {abs(Es1[0])-abs(Es2[0])}")
+	# print(f"delta phase = {phase(Es1[0])-phase(Es2[0])}")
+	# print('=============Y=============')
+	# print(f"delta abs = {abs(Es1[1]) - abs(Es2[1])}")
+	# print(f"delta phase = {phase(Es1[1]) - phase(Es2[1])}")
+	# print('=============Z=============')
+	# print(f"delta abs = {abs(Es1[2]) - abs(Es2[2])}")
+	# print(f"delta phase = {phase(Es1[2]) - phase(Es2[2])}")
+
+a = 3
+b = 1
+phi = 0
+ka = 1
+Na = 91
+theta_arr = np.linspace(0, 90, Na)
+CalcTwoRectangles(a, b, theta_arr, phi, ka)
+# a = 2
+# b = 2
+# Na = 181
+# theta_arr = np.linspace(45, 90, 1)
+# phi_arr = np.linspace(-90, 90, Na)
+# ka = 50
+# CalcRectangle1(a, b, theta_arr, phi_arr, ka)
 #Na = 181
 #theta_arr = np.linspace(-90, 90, Na)
 #phi = np.linspace(0, 0, 1)
