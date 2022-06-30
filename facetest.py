@@ -2,6 +2,7 @@ import numpy as np
 import array
 import matplotlib.pyplot as plt
 from cmath import phase
+import math
 
 def foreshortening(phi_deg, theta_deg, pol):
 	''' Define foreshortening '''
@@ -274,14 +275,16 @@ def CalcRectangle1(a, b, theta, phi_arr, ka):
 
 
 def CalcTwoRectangles(a, b, theta_arr, phi, ka):
-	F1, V1 = generateRectangle(a, b, [-a / 2, 0])
-	F2, V2 = generateRectangle(a, b, [ a / 2, 0])
+	d = 0.25*a
+	F1, V1 = generateRectangle(a, b)
+	F2, V2 = generateRectangle(a, b, [ d, 0])
 	S1, S2 = a * b, a * b
 	k = ka / a
 	wavelength = 2 * np.pi / k
 	Na = len(theta_arr)
 	Diff_abs = np.zeros((Na,))
 	Diff_phase = np.zeros((Na,))
+	func = np.zeros((Na,))
 	for i in range(Na):
 		ri, ei = foreshortening(phi, theta_arr[i], "h")
 		rs = -ri
@@ -289,8 +292,12 @@ def CalcTwoRectangles(a, b, theta_arr, phi, ka):
 		Es2 = CalcMonostaticReflectedField(F2, V2, k, ei, ri, rs)
 		Diff_abs[i] = abs(Es1[1]) - abs(Es2[1])
 		Diff_phase[i] = phase(Es1[1]) - phase(Es2[1])
+		func[i] = 2*k*d*np.sin((np.pi/180)*theta_arr[i])
 	plt.plot(theta_arr, Diff_abs, 'r', label="abs")
 	plt.plot(theta_arr, Diff_phase, 'b', label="phase")
+	# print(f'theta_arr is {type(theta_arr)}  with size {theta_arr.size()}')
+	plt.plot(theta_arr, func, 'g', label="sqrt")
+	# plt.plot(theta_arr, 0.0042*theta_arr, 'k', label="line")
 	plt.legend(loc="upper left")
 	plt.show()
 	# print('=============X=============')
@@ -306,7 +313,7 @@ def CalcTwoRectangles(a, b, theta_arr, phi, ka):
 a = 3
 b = 1
 phi = 0
-ka = 1
+ka = 10
 Na = 91
 theta_arr = np.linspace(0, 90, Na)
 CalcTwoRectangles(a, b, theta_arr, phi, ka)
