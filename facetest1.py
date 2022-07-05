@@ -193,6 +193,7 @@ def CalcRectangle(a, b, theta_arr, phi, ka_arr):
 	discrepancy = np.zeros((Nw,))
 	discrepancy1 = np.zeros((Nw,))
 	coef = np.sqrt((2*np.pi*b*np.sin(phi * np.pi / 180))**2 + (2*np.pi*a*np.cos(phi * np.pi / 180))**2)
+	coef = 2 * np.pi * a
 	for iwave in range(Nw):
 		ka = ka_arr[iwave]
 		k = ka/a
